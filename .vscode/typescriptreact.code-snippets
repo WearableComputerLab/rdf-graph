@@ -1,0 +1,16 @@
+{
+  "Component": {
+    "prefix": ["component"],
+    "body": [
+      "const $0 = React.memo(function $0(): React.JSX.Element {",
+      "\treturn (",
+      "\t\t<>",
+      "\t\t</>",
+      "\t);",
+      "});",
+      "",
+      "export default $0;"
+    ],
+    "description": "Declares a memoed React component."
+  }
+}

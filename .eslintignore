@@ -1,0 +1,6 @@
+node_modules/
+build/
+.eslintrc.js
+.prettierrc.js
+tailwind.config.js
+tsconfig.json

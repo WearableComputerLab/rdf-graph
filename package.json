@@ -1,0 +1,44 @@
+{
+  "name": "rdf-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "webpack serve --mode development",
+    "build": "cross-env NODE_ENV=production webpack --mode production",
+    "lint": "eslint ./src"
+  },
+  "dependencies": {
+    "clsx": "^2.0",
+    "n3": "^1.24.2",
+    "react": "^19.0",
+    "react-dom": "^19.0",
+    "react-force-graph": "^1.47.6",
+    "react-icons": "^4.11"
+  },
+  "devDependencies": {
+    "@svgr/webpack": "^8.1",
+    "@types/n3": "^1.24.2",
+    "@types/react": "^19.0",
+    "@types/react-dom": "^19.0",
+    "@typescript-eslint/eslint-plugin": "^6.7",
+    "@typescript-eslint/parser": "^6.7",
+    "cross-env": "^7.0",
+    "css-loader": "^6.8",
+    "eslint": "^8.49",
+    "eslint-plugin-react": "^7.33",
+    "eslint-plugin-react-hooks": "^4.6",
+    "html-webpack-plugin": "^5.5",
+    "postcss": "^8.4",
+    "postcss-loader": "^7.3",
+    "postcss-preset-env": "^9.1",
+    "prettier": "^3.0",
+    "style-loader": "^3.3",
+    "tailwindcss": "^3.4",
+    "ts-loader": "^9.5",
+    "tsconfig-paths-webpack-plugin": "^4.1",
+    "typescript": "^5.2",
+    "webpack": "^5.91",
+    "webpack-cli": "^5.1",
+    "webpack-dev-server": "^5.0"
+  }
+}
