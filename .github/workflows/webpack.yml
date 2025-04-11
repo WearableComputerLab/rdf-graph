@@ -18,7 +18,7 @@ jobs:
     - name: Build
       run: |
         repo_full="${{ github.repository }}"
-        export BASE_PATH="${repo_full##*/}"
+        export BASE_PATH="/${repo_full##*/}/"
         echo "$BASE_PATH"
         npm install
         npm run build
