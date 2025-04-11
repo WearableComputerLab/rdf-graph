@@ -1,3 +1,3 @@
 # RDF Viewer
 
-Just messing around
+Visualise a TTL file as a force-directed graph.
