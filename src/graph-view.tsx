@@ -21,12 +21,14 @@ type Node = {
     vx: number;
     vy: number;
     className: string | null;
+    longestLinkLength: number;
 };
 
 type Link = {
     source: string;
     target: string;
     data: N3.Quad;
+    name: string;
 };
 
 type GraphRef = ForceGraphMethods<
@@ -60,7 +62,8 @@ function mkNode(data: N3.Quad_Object, prefixes: Record<string, string>): Node {
         data,
         vx: Math.random() * 2.0 - 1.0,
         vy: Math.random() * 2.0 - 1.0,
-        className: null
+        className: null,
+        longestLinkLength: 0
     };
 }
 
@@ -113,6 +116,84 @@ function pointerAreaPaint(
     ctx.fillRect(n.x! - width * 0.5, n.y! - height * 0.5, width, height);
 }
 
+export function boxCollision(
+    w: number,
+    h: number,
+    dx: number,
+    dy: number
+): number {
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+
+    return Math.min((w * 0.5) / ax, (h * 0.5) / ay);
+}
+
+function renderLink(
+    l: LinkObject<Node, Link>,
+    ctx: CanvasRenderingContext2D
+): void {
+    const s = l.source as Node;
+    const t = l.target as Node;
+
+    if (typeof s !== "object" || typeof t !== "object") {
+        return;
+    }
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "bevel";
+
+    const [sw, sh] = getNodeSize(s);
+    const [tw, th] = getNodeSize(t);
+    let dx = t.x! - s.x!;
+    let dy = t.y! - s.y!;
+
+    const len = Math.sqrt(dx * dx + dy * dy);
+    dx /= len;
+    dy /= len;
+
+    const o1 = boxCollision(sw, sh, dx, dy);
+    const o2 = boxCollision(tw, th, -dx, -dy);
+
+    const tx = t.x! - dx * o2;
+    const ty = t.y! - dy * o2;
+    const arrowBack = 5;
+    const arrowSide = 5;
+
+    ctx.beginPath();
+    ctx.moveTo(s.x! + dx * o1, s.y! + dy * o1);
+    ctx.lineTo(tx, ty);
+    ctx.lineTo(
+        tx - dx * arrowBack + dy * arrowSide,
+        ty - dy * arrowBack - dx * arrowSide
+    );
+    ctx.lineTo(tx, ty);
+    ctx.lineTo(
+        tx - dx * arrowBack - dy * arrowSide,
+        ty - dy * arrowBack + dx * arrowSide
+    );
+    ctx.stroke();
+
+    const origTransform = ctx.getTransform();
+    const angle = Math.atan2(dy, dx);
+
+    ctx.translate(s.x!, s.y!);
+    ctx.rotate(Math.atan2(dy, dx));
+    ctx.translate(len * 0.5, 0);
+
+    if (angle < -Math.PI * 0.5 || angle > Math.PI * 0.5) {
+        ctx.rotate(Math.PI);
+    }
+
+    ctx.font = "8px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fillText(l.name, 0, 8);
+
+    ctx.setTransform(origTransform);
+}
+
 const GraphView = React.memo(function GraphView({
     data
 }: GraphViewProps): React.JSX.Element {
@@ -148,11 +229,24 @@ const GraphView = React.memo(function GraphView({
                 nodeMap.set(object.id, object);
             }
 
+            const linkName = stripPrefix(q.predicate.value, prefixes);
+
             links.push({
                 source: subject.id,
                 target: object.id,
-                data: q
+                data: q,
+                name: linkName
             });
+
+            subject.longestLinkLength = Math.max(
+                subject.longestLinkLength,
+                linkName.length
+            );
+
+            object.longestLinkLength = Math.max(
+                object.longestLinkLength,
+                linkName.length
+            );
         }
 
         for (const q of types) {
@@ -180,7 +274,9 @@ const GraphView = React.memo(function GraphView({
             "collide",
             forceCollide(n => {
                 const [w, h] = getNodeSize(n as Node);
-                return Math.max(w, h) * 0.5 + 5;
+                const linkSz = (n as Node).longestLinkLength * 6;
+
+                return Math.max(w, h, linkSz) * 0.5 + 5;
             })
         );
 
@@ -193,11 +289,7 @@ const GraphView = React.memo(function GraphView({
                 graphData={graphData}
                 nodeCanvasObject={renderNode}
                 nodePointerAreaPaint={pointerAreaPaint}
-                linkColor={() => "rgba(255, 255, 255, 0.25)"}
-                linkWidth={2}
-                linkDirectionalArrowLength={10}
-                linkDirectionalArrowRelPos={1.0}
-                linkCurvature={0.1}
+                linkCanvasObject={renderLink}
                 ref={graphRef as RefObject<GraphRef>}
                 cooldownTime={Number.POSITIVE_INFINITY}
             />
